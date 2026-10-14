@@ -19,6 +19,10 @@ import sys
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
+# Keep the Vietnamese demo output readable in Windows terminals using a legacy code page.
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout.reconfigure(encoding="utf-8")
+
 
 async def main() -> None:
     # Dùng đúng interpreter đang chạy client (tránh lỗi "python" không tồn tại)

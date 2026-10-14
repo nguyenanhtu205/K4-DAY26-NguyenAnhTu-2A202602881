@@ -9,12 +9,26 @@ Cách chạy:
     python weather_function_calling.py
 """
 
+import httpx
 from google import genai
-from google.genai import types
+from google.genai import errors, types
 
-client = genai.Client()
+# Prevent an unavailable Gemini service from appearing to hang indefinitely.
+# Two short retries are sufficient for this classroom demo; retry later if it remains busy.
+client = genai.Client(
+    http_options=types.HttpOptions(
+        timeout=30_000,
+        retry_options=types.HttpRetryOptions(
+            attempts=2,
+            initial_delay=1.0,
+            max_delay=3.0,
+        ),
+    )
+)
 
-MODEL = "gemini-2.5-flash"
+# Gemini no longer enables gemini-2.5-flash for newly created API projects.
+# 3.5 Flash supports Function Calling and is suitable for this Free Tier lab demo.
+MODEL = "gemini-3.5-flash"
 
 SYSTEM_INSTRUCTION = (
     "Bạn là trợ lý thời tiết thân thiện, trả lời bằng tiếng Việt tự nhiên. "
@@ -83,6 +97,10 @@ def run(prompt: str) -> str:
         config=types.GenerateContentConfig(
             tools=TOOLS,
             system_instruction=SYSTEM_INSTRUCTION,
+            thinking_config=types.ThinkingConfig(
+                thinking_level=types.ThinkingLevel.LOW
+            ),
+            max_output_tokens=250,
         ),
     )
 
@@ -110,6 +128,10 @@ def run(prompt: str) -> str:
             config=types.GenerateContentConfig(
                 tools=TOOLS,
                 system_instruction=SYSTEM_INSTRUCTION,
+                thinking_config=types.ThinkingConfig(
+                    thinking_level=types.ThinkingLevel.LOW
+                ),
+                max_output_tokens=250,
             ),
         )
 
@@ -120,4 +142,10 @@ def run(prompt: str) -> str:
 if __name__ == "__main__":
     question = "Thời tiết Hà Nội và Đà Nẵng hôm nay thế nào?"
     print(f"User: {question}\n")
-    print("Trả lời:", run(question))
+    try:
+        print("Trả lời:", run(question))
+    except (errors.APIError, httpx.TimeoutException):
+        print(
+            "Gemini đang quá tải hoặc chưa phản hồi. "
+            "Hãy chờ ít phút rồi chạy lại lệnh này."
+        )

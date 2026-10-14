@@ -15,9 +15,14 @@ from __future__ import annotations
 import asyncio
 
 import os
+import sys
 
 from mcp import ClientSession
 from mcp.client.streamable_http import create_mcp_http_client, streamable_http_client
+from mcp.shared.exceptions import MCPError
+
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout.reconfigure(encoding="utf-8")
 
 SERVER_URL = "http://localhost:8000/mcp"
 TOKEN = os.environ.get("MCP_AUTH_TOKEN", "dev-token-abc123")
@@ -46,4 +51,7 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except* MCPError:
+        print("Truy cập bị từ chối: bearer token không hợp lệ (server trả 401/403).")

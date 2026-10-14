@@ -7,6 +7,9 @@ import sys
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout.reconfigure(encoding="utf-8")
+
 
 async def main() -> None:
     params = StdioServerParameters(command=sys.executable, args=["versioned_server.py"])
